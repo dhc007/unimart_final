@@ -1,63 +1,50 @@
-const multer = require('multer');
-const path = require('path');
 const Product = require('../models/Product');
 const User = require('../models/User');
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Save files in the 'uploads' directory
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ 
-  storage,
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = fileTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed (jpeg, jpg, png)'));
-    }
-  },
-});
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
+  // Support query filters
   const filters = {};
+  
+  // Search query
   const keyword = req.query.search 
     ? { title: { $regex: req.query.search, $options: 'i' } } 
     : {};
     
+  // Category filter
   if (req.query.category && req.query.category !== 'All Categories') {
     filters.category = req.query.category;
   }
+  
+  // Subject filter
   if (req.query.subject && req.query.subject !== 'All Subjects') {
     filters.subject = req.query.subject;
   }
+  
+  // Condition filter
   if (req.query.condition && req.query.condition !== 'All Conditions') {
     filters.condition = req.query.condition;
   }
+  
+  // Price range filter
   if (req.query.minPrice && req.query.maxPrice) {
     filters.price = { 
       $gte: Number(req.query.minPrice), 
       $lte: Number(req.query.maxPrice) 
     };
   }
+  
+  // Blockchain verified filter
   if (req.query.blockchainVerified === 'true') {
     filters.isBlockchainVerified = true;
   }
 
+  // Combine filters
   const queryFilter = { ...keyword, ...filters };
   
+  // Support sorting
   let sortOption = {};
   switch (req.query.sort) {
     case 'price-low-high':
@@ -74,6 +61,7 @@ const getProducts = async (req, res) => {
       sortOption = { createdAt: -1 };
   }
 
+  // Get products with filters and sorting
   const products = await Product.find(queryFilter)
     .sort(sortOption)
     .populate('seller', 'name rating');
@@ -104,14 +92,13 @@ const createProduct = async (req, res) => {
     title,
     description,
     price,
+    image,
     category,
     condition,
     subject,
     isBlockchainVerified,
     location,
   } = req.body;
-
-  const image = req.file ? `/uploads/${req.file.filename}` : null;
 
   const product = new Product({
     title,
@@ -144,6 +131,6 @@ const getSellerProducts = async (req, res) => {
 module.exports = { 
   getProducts, 
   getProductById, 
-  createProduct: [upload.single('image'), createProduct], // Add multer middleware
+  createProduct,
   getSellerProducts
 };

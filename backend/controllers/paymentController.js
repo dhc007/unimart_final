@@ -1,6 +1,5 @@
 const Razorpay = require('razorpay');
 const Product = require('../models/Product');
-const Order = require('../models/Order'); // Import the Order model
 
 // Make sure environment variables are available
 const key_id = process.env.RAZORPAY_KEY_ID;
@@ -45,24 +44,12 @@ const createOrder = async (req, res) => {
       payment_capture: 1
     };
     
-    const razorpayOrder = await razorpay.orders.create(options);
-
-    // Save order details to MongoDB
-    const order = new Order({
-      razorpayOrderId: razorpayOrder.id,
-      productId: product._id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
-      receipt: razorpayOrder.receipt,
-      status: razorpayOrder.status
-    });
-
-    await order.save();
-
+    const order = await razorpay.orders.create(options);
+    
     res.json({
-      id: razorpayOrder.id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency,
       product: {
         id: product._id,
         title: product.title,

@@ -53,33 +53,22 @@ const registerUser = async (req, res) => {
 const authUser = async (req, res) => {
   const { email, password } = req.body;
 
-  // Validate input
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide both email and password' });
-  }
+  // Find user
+  const user = await User.findOne({ email });
 
-  try {
-    // Find user
-    const user = await User.findOne({ email });
-
-    // Check if user exists and password matches
-    if (user && (await user.matchPassword(password))) {
-      return res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        department: user.department,
-        year: user.year,
-        avatar: user.avatar,
-        token: generateToken(user._id),
-      });
-    } else {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-  } catch (error) {
-    // Handle unexpected errors
-    console.error(error);
-    res.status(500).json({ message: 'Server error. Please try again later.' });
+  if (user && (await user.matchPassword(password))) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      department: user.department,
+      year: user.year,
+      avatar: user.avatar,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
   }
 };
 
@@ -124,9 +113,6 @@ const logoutUser = async (req, res) => {
 
     // Clear the user data from the request
     req.user = null;
-
-    res.clearCookie('token'); // Replace 'token' with your cookie name if applicable
-
 
     // Send success response
     res.status(200).json({

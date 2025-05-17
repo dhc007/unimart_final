@@ -4,16 +4,14 @@ const {
   registerUser, 
   authUser, 
   getUserProfile,
+  logoutUser,
   updateUserProfile 
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
-const connectDB = require('../config/db');
-const { logoutUser } = require('../controllers/userController');
-
 
 router.post('/', registerUser);
 router.post('/login', authUser);
-router.post('/logout', logoutUser);
+router.post('/logout', protect, logoutUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 

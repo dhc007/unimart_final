@@ -16,13 +16,13 @@ const productSchema = mongoose.Schema(
     },
     image: {
       type: String,
-      required: true, // This will store the path or URL of the uploaded image
+      required: true,
     },
-    images: [
-      {
-        type: String, // Each entry will store the path or URL of an uploaded image
-      },
-    ],
+    images: [String],
+    category: {
+      type: String,
+      required: true,
+    },
     condition: {
       type: String,
       required: true,

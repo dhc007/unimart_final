@@ -67,7 +67,7 @@ const Hero = () => {
     <div className="relative overflow-hidden">
       {/* Background gradient */}
       <div 
-        className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-70"
+        className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0"
         style={{ transform: `translateY(${scrollY * 0.2}px)` }} 
       />
       
